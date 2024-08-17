@@ -1,18 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace SPA_JWT_Sample.Controllers
 {
-    public class AuthenticationController : Controller
+    public class AuthenticationController : ControllerBase
     {
         private IConfiguration Configuration;
         public AuthenticationController(IConfiguration configuration)
         {
             Configuration = configuration;
         }
+
         /// <summary>
-        /// use login model to validate and generate jwt token into cookie
+        /// 使用登入模型來驗證並生成 JWT token 到 cookie
         /// </summary>
         /// <returns></returns>
+        [HttpPost("login")]
         public IActionResult Login(LoginModel loginModel)
         {
             if (loginModel.Username == "admin" && loginModel.Password == "password")
@@ -33,11 +38,35 @@ namespace SPA_JWT_Sample.Controllers
             }
         }
 
-        private string GenerateJwtToken( IConfiguration config)
+        /// <summary>
+        /// 使用登入模型來驗證並生成 JWT token 到 cookie
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("token")]
+        public IActionResult Token(LoginModel loginModel)
         {
-            // Generate JWT token logic here
-            
-            return "generated_token";
+            if (loginModel.Username == "admin" && loginModel.Password == "password")
+            {
+                var token = GenerateJwtToken(Configuration);
+                return Ok(new { Token = token});
+            }
+            else
+            {
+                return Unauthorized();
+            }
+        }
+        private string GenerateJwtToken(IConfiguration config)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Secret"] ?? "default secret"));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(
+                issuer: config["JWT:Issuer"],
+                audience: config["JWT:Audience"],
+                expires: DateTime.Now.AddMinutes(30),
+                signingCredentials: credentials
+            );
+            var tokenHelper = new JwtSecurityTokenHandler();
+            return tokenHelper.WriteToken(token);
         }
     }
 
