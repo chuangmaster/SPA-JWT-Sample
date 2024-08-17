@@ -1,0 +1,6 @@
+@SPA_JWT_Sample_HostAddress = http://localhost:5133
+
+GET {{SPA_JWT_Sample_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
