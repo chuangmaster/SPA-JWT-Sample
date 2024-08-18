@@ -43,7 +43,7 @@ namespace SPA_JWT_Sample.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("token")]
-        public IActionResult Token(LoginModel loginModel)
+        public IActionResult Token([FromBody]LoginModel loginModel)
         {
             if (loginModel.Username == "admin" && loginModel.Password == "password")
             {
