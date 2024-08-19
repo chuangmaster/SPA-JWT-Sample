@@ -12,6 +12,8 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "axios": "^1.7.4",
+    "fs": "^0.0.1-security",
     "vue": "^3.4.29"
   },
   "devDependencies": {

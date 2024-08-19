@@ -5,7 +5,6 @@ namespace SPA_JWT_Sample
 {
     public class Program
     {
-
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -15,14 +14,16 @@ namespace SPA_JWT_Sample
             // Add cors service
             builder.Services.AddCors(options =>
             {
-                options.AddDefaultPolicy(
+                options.AddPolicy("AllowSpecificOrigin",
                     builder =>
                     {
-                        builder.WithOrigins("http://localhost:3000")
+                        builder.WithOrigins("https://localhost:8080")
                             .AllowAnyHeader()
-                            .AllowAnyMethod();
+                            .AllowAnyMethod()
+                            .AllowCredentials();
                     });
             });
+
             // Add jwt service
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -36,6 +37,7 @@ namespace SPA_JWT_Sample
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"] ?? "default secret"))
                     };
                 });
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -49,8 +51,8 @@ namespace SPA_JWT_Sample
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
             app.UseCors("AllowSpecificOrigin");
-            //use jwt service
 
             app.UseHttpsRedirection();
 
