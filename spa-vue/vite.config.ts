@@ -15,10 +15,10 @@ export default defineConfig({
     }
   },
   server: {
-    https: {
-      key: fs.readFileSync('./key.pem'),
-      cert: fs.readFileSync('./cert.pem'),
-    },
+    // https: {
+    //   key: fs.readFileSync('./key.pem'),
+    //   cert: fs.readFileSync('./cert.pem'),
+    // },
     port: 8080,  // Your development port
   }
 })

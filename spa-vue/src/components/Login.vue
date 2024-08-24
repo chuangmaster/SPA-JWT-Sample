@@ -1,40 +1,52 @@
 <template>
-    <div class="login">
+    <div class="login" v-if="!isLogin">
         <h2>Login</h2>
-        <form @submit.prevent="login">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" v-model="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" v-model="password" required>
-            </div>
-            <button type="submit">Login</button>
-        </form>
+        <div id="login-form">
+            <form @submit.prevent="login">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" v-model="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" v-model="password" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+        </div>
     </div>
+    <WeatherForecast v-else></WeatherForecast>
 </template>
 
 <script>
 import axios from 'axios';
+import WeatherForecast from './WeatherForecast.vue';
 
 export default {
+    components: {
+        WeatherForecast
+    },
     data() {
         return {
             username: 'admin',
-            password: 'password'
+            password: 'password',
+            isLogin: false
         };
+    },
+    created() {
+        this.isLogin = localStorage.getItem('isLogin') === 'true'; // Check login status from localStorage
     },
     methods: {
         login() {
             const formData = new FormData();
-             formData.append('username', this.username);
-             formData.append('password', this.password);
+            formData.append('username', this.username);
+            formData.append('password', this.password);
             axios.post('https://localhost:7173/login', formData, { withCredentials: true }).then(response => {
                 if (response.status === 200) {
-                    alert('Login successful');
+                    this.isLogin = true;
+                    localStorage.setItem('isLogin', 'true'); // Save login status to localStorage
+
                 }
-                console.log(response.data);
             }).catch(error => {
                 console.log(error);
             });
