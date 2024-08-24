@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+
 namespace SPA_JWT_Sample
 {
     public class Program
@@ -11,20 +12,20 @@ namespace SPA_JWT_Sample
 
             // Add services to the container.
 
-            // Add cors service
+            // Add CORS service
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowSpecificOrigin",
                     builder =>
                     {
-                        builder.WithOrigins("https://localhost:8080")
-                            .AllowAnyHeader()
-                            .AllowAnyMethod()
-                            .AllowCredentials();
+                        builder.WithOrigins("http://localhost:8080")
+                               .AllowAnyHeader()
+                               .AllowAnyMethod()
+                               .AllowCredentials();
                     });
             });
 
-            // Add jwt service
+            // Add JWT service
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -36,10 +37,19 @@ namespace SPA_JWT_Sample
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"] ?? "default secret"))
                     };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Cookies["access_token"];
+                            context.Token = accessToken;
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -52,10 +62,12 @@ namespace SPA_JWT_Sample
                 app.UseSwaggerUI();
             }
 
+            // Ensure CORS is applied early in the pipeline
             app.UseCors("AllowSpecificOrigin");
 
             app.UseHttpsRedirection();
 
+            // Use Authentication and Authorization after CORS
             app.UseAuthentication();
             app.UseAuthorization();
 

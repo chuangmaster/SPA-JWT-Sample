@@ -26,7 +26,7 @@ namespace SPA_JWT_Sample.Controllers
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true, // 在開發環境中可以設置為 false，生產環境中應設置為 true (目前測試下來都使用true並使用https做傳遞成功率比較高)
+                    Secure = true, // 在開發環境中可以設置為 false，生產環境中應設置為 true 
                     SameSite = SameSiteMode.None, // 確保跨站點 cookie 可以被發送
                 };
                 Response.Cookies.Append("access_token", token, cookieOptions);
