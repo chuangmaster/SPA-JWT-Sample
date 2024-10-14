@@ -32,7 +32,8 @@ namespace SPA_JWT_Sample
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = false,
-                        ValidateAudience = false,
+                        ValidateAudience = true,
+                        ValidAudiences = new[] { "A" },
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"] ?? "default secret"))

@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 namespace SPA_JWT_Sample.Controllers
 {
@@ -23,7 +24,7 @@ namespace SPA_JWT_Sample.Controllers
         {
             if (loginModel.Username == "admin" && loginModel.Password == "password")
             {
-                var token = GenerateJwtToken(Configuration, true);
+                var token = GenerateJwtToken(Configuration, true, loginModel.Platform);
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
@@ -35,7 +36,7 @@ namespace SPA_JWT_Sample.Controllers
             }
             else if (loginModel.Username == "normalUser" && loginModel.Password == "password")
             {
-                var token = GenerateJwtToken(Configuration, false);
+                var token = GenerateJwtToken(Configuration, false, loginModel.Platform);
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
@@ -60,12 +61,12 @@ namespace SPA_JWT_Sample.Controllers
         {
             if (loginModel.Username == "admin" && loginModel.Password == "password")
             {
-                var token = GenerateJwtToken(Configuration, true);
+                var token = GenerateJwtToken(Configuration, true, loginModel.Platform);
                 return Ok(new { Token = token });
             }
             else if (loginModel.Username == "normalUser" && loginModel.Password == "password")
             {
-                var token = GenerateJwtToken(Configuration, false);
+                var token = GenerateJwtToken(Configuration, false, loginModel.Platform);
                 return Ok(new { Token = token });
             }
             else
@@ -73,17 +74,34 @@ namespace SPA_JWT_Sample.Controllers
                 return Unauthorized();
             }
         }
-        private string GenerateJwtToken(IConfiguration config, bool isAdmin)
+        private string GenerateJwtToken(IConfiguration config, bool isAdmin, string platform)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Secret"] ?? "default secret"));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var claims = new List<Claim>()
             {
-                 new Claim(ClaimTypes.Role, isAdmin? "admin": "normalUser") // 添加角色 Claim
+                 //new Claim(ClaimTypes.Role, isAdmin? "admin": "normalUser") // 添加角色 Claim
+                //new Claim("roles", JsonSerializer.Serialize(new
+                //{
+                //    A = isAdmin ? "admin" : "normalUser",
+                //    B = "User"
+                //}))
             };
+            if (!string.IsNullOrEmpty(platform) && platform == "A")
+            {
+                claims.Add(new Claim(JwtRegisteredClaimNames.Aud, "A"));
+                claims.Add(new Claim(ClaimTypes.Role, isAdmin ? "admin" : "normalUser"));
+            }
+            if (!string.IsNullOrEmpty(platform) && platform == "B")
+            {
+                claims.Add(new Claim(JwtRegisteredClaimNames.Aud, "B"));
+                claims.Add(new Claim(ClaimTypes.Role, "User"));
+
+            }
+
             var token = new JwtSecurityToken(
                 issuer: config["JWT:Issuer"],
-                audience: config["JWT:Audience"],
+                //audience: config["JWT:Audience"],
                 claims: claims,
                 expires: DateTime.Now.AddMinutes(30),
                 signingCredentials: credentials
@@ -98,5 +116,7 @@ namespace SPA_JWT_Sample.Controllers
     {
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+
+        public string Platform { get; set; } = string.Empty;
     }
 }

@@ -30,9 +30,10 @@ export default {
                 }).then(response => {
                     this.forecasts = response.data;
                 })
-                    .catch(error => {
-                        console.error('Error fetching weather forecast:', error);
-                    });
+                .catch(error => {
+                    console.log('Error fetching weather forecast:', error);
+                    alert(error.message);
+                });
 
             } catch (error) {
                 console.log(error);

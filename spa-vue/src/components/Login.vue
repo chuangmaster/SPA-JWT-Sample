@@ -11,11 +11,19 @@
                     <label for="password">Password:</label>
                     <input type="password" id="password" v-model="password" required>
                 </div>
+                <div class="form-group">
+                    <label for="platform">Platform</label>
+                    <select class="form-select" name="platform" v-model="platform">
+                        <option selected value="A">Platform A</option>
+                        <option value="B">Platform B</option>
+                    </select>
+                </div>
                 <button type="submit">Login</button>
             </form>
         </div>
     </div>
-    <WeatherForecast v-else></WeatherForecast>
+    <button type="button" class="logout" v-if="isLogin" @click="logout">Log out</button>
+    <WeatherForecast v-if="isLogin"></WeatherForecast>
 </template>
 
 <script>
@@ -30,6 +38,7 @@ export default {
         return {
             username: 'admin',
             password: 'password',
+            platform: 'A',
             isLogin: false
         };
     },
@@ -41,7 +50,10 @@ export default {
             const formData = new FormData();
             formData.append('username', this.username);
             formData.append('password', this.password);
-            axios.post('https://localhost:7173/login', formData, { withCredentials: true }).then(response => {
+            formData.append('platform', this.platform);
+
+            axios.post('https://localhost:7173/login', formData, { withCredentials: true })
+            .then(response => {
                 if (response.status === 200) {
                     this.isLogin = true;
                     localStorage.setItem('isLogin', 'true'); // Save login status to localStorage
@@ -50,6 +62,11 @@ export default {
             }).catch(error => {
                 console.log(error);
             });
+        },
+        logout() {
+            //delete localStorage item isLogin
+            this.isLogin = false;
+            localStorage.removeItem('isLogin');
         }
     }
 };
@@ -100,5 +117,13 @@ export default {
 .form-group {
     display: flex;
     justify-content: space-between;
+}
+button.logout {
+    padding: 10px;
+    background-color: #087087;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 </style>
