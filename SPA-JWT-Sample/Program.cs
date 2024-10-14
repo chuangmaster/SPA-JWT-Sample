@@ -64,7 +64,21 @@ namespace SPA_JWT_Sample
             }
 
             // Ensure CORS is applied early in the pipeline
-            app.UseCors("AllowSpecificOrigin");
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseCors("AllowSpecificOrigin");
+            }
+            else
+            {
+                app.UseCors(builder =>
+                {
+                    builder.WithOrigins("http://localhost:8080")
+                           .AllowAnyHeader()
+                           .AllowAnyMethod()
+                           .AllowCredentials();
+                });
+            }
+            //app.UseCors("AllowSpecificOrigin");
 
             app.UseHttpsRedirection();
 
