@@ -19,8 +19,11 @@
                     </select>
                 </div>
                 <button type="submit">Login</button>
+
+
             </form>
         </div>
+        <button type="submit" v-on:click="AzLogin">Login With AZ</button>
     </div>
     <button type="button" class="logout" v-if="isLogin" @click="logout">Log out</button>
     <WeatherForecast v-if="isLogin"></WeatherForecast>
@@ -29,6 +32,9 @@
 <script>
 import axios from 'axios';
 import WeatherForecast from './WeatherForecast.vue';
+import { PublicClientApplication } from "@azure/msal-browser"; // if using CDN, 'Msal' will be available in global scope
+
+
 
 export default {
     components: {
@@ -39,11 +45,26 @@ export default {
             username: 'admin',
             password: 'password',
             platform: 'A',
-            isLogin: false
+            isLogin: false,
+            msalInstance: null,
+            accountId: ''
         };
     },
-    created() {
+    async created() {
         this.isLogin = localStorage.getItem('isLogin') === 'true'; // Check login status from localStorage
+
+        const config = {
+            auth: {
+                clientId: "22d34a7e-90d9-40fe-be89-efc1a9b13cfb",
+                redirectUri: "http://localhost:8080", //defaults to application start page
+                postLogoutRedirectUri: "/",
+            },
+        };
+
+
+
+        this.msalInstance = new PublicClientApplication(config);
+        await this.msalInstance.initialize();
     },
     methods: {
         login() {
@@ -53,20 +74,33 @@ export default {
             formData.append('platform', this.platform);
 
             axios.post('https://localhost:7173/login', formData, { withCredentials: true })
-            .then(response => {
-                if (response.status === 200) {
-                    this.isLogin = true;
-                    localStorage.setItem('isLogin', 'true'); // Save login status to localStorage
+                .then(response => {
+                    if (response.status === 200) {
+                        this.isLogin = true;
+                        localStorage.setItem('isLogin', 'true'); // Save login status to localStorage
 
-                }
-            }).catch(error => {
-                console.log(error);
-            });
+                    }
+                }).catch(error => {
+                    console.log(error);
+                });
         },
         logout() {
             //delete localStorage item isLogin
             this.isLogin = false;
             localStorage.removeItem('isLogin');
+        },
+        AzLogin() {
+            const loginRequest = {
+                scopes: ["User.ReadWrite"],
+            };
+            this.msalInstance.loginPopup(loginRequest)
+                .then(response => {
+                    console.log(response);
+                    this.accountId = response.account.accountIdentifier;
+                })
+                .catch(error => {
+                    console.log(error);
+                });
         }
     }
 };
@@ -118,6 +152,7 @@ export default {
     display: flex;
     justify-content: space-between;
 }
+
 button.logout {
     padding: 10px;
     background-color: #087087;
