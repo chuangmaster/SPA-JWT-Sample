@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
 import Login from './components/Login.vue';
+
 </script>
 
 <template>
@@ -10,14 +10,19 @@ import Login from './components/Login.vue';
 
     <div class="wrapper">
       <HelloWorld msg="You did it!" />
-      
+
     </div>
   </header>
 
   <main>
-    <!-- <TheWelcome /> -->
-    <Login></Login>
+    <nav>
+      <RouterLink to="/">Go to Home</RouterLink>
+      <RouterLink to="/welcome">Go to Welcome</RouterLink>
+      <RouterLink to="/login">Go to Login</RouterLink>
+    </nav>
+    
   </main>
+  <router-view/>
 </template>
 
 <style scoped>
