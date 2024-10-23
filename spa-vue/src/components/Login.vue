@@ -23,9 +23,12 @@
 
             </form>
         </div>
-        <button type="submit" v-on:click="AzLogin">Login With AZ</button>
+        <button type="button" v-on:click="azLogin">Login With AZ</button>
+        <button type="button" v-on:click="azLogout">Logout AZ</button>
+
     </div>
     <button type="button" class="logout" v-if="isLogin" @click="logout">Log out</button>
+    
     <WeatherForecast v-if="isLogin"></WeatherForecast>
 </template>
 
@@ -56,13 +59,10 @@ export default {
         const config = {
             auth: {
                 clientId: "22d34a7e-90d9-40fe-be89-efc1a9b13cfb",
-                redirectUri: "http://localhost:8080", //defaults to application start page
+                redirectUri: "http://localhost:8080/welcome", //defaults to application start page
                 postLogoutRedirectUri: "/",
             },
         };
-
-
-
         this.msalInstance = new PublicClientApplication(config);
         await this.msalInstance.initialize();
     },
@@ -89,7 +89,7 @@ export default {
             this.isLogin = false;
             localStorage.removeItem('isLogin');
         },
-        AzLogin() {
+        azLogin() {
             const loginRequest = {
                 scopes: ["User.ReadWrite"],
             };
@@ -97,10 +97,14 @@ export default {
                 .then(response => {
                     console.log(response);
                     this.accountId = response.account.accountIdentifier;
+                    window.location.href = '/welcome';
                 })
                 .catch(error => {
                     console.log(error);
                 });
+        },
+        azLogout() {
+            this.msalInstance.logout();
         }
     }
 };
