@@ -5,24 +5,23 @@ import Login from './components/Login.vue';
 </script>
 
 <template>
-  <header>
+  <!--<header>
     <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+    <div class="wrapper">-->
+      <!--<HelloWorld msg="You did it!" />-->
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-    </div>
-  </header>
+    <!--</div>
+  </header>-->
 
   <main>
-    <nav>
-      <RouterLink to="/">Go to Home</RouterLink>
-      <RouterLink to="/welcome">Go to Welcome</RouterLink>
-      <RouterLink to="/login">Go to Login</RouterLink>
-    </nav>
-    
+      <nav>
+          <RouterLink to="/">Go to Home</RouterLink> |
+          <RouterLink to="/welcome">Go to Welcome</RouterLink> |
+          <RouterLink to="/login">Go to Login</RouterLink>
+      </nav>
+      <router-view/>
   </main>
-  <router-view/>
+
 </template>
 
 <style scoped>
