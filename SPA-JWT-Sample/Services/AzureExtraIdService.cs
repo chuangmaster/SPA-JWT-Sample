@@ -1,16 +1,21 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using SPA_JWT_Sample.Models;
+using SPA_JWT_Sample.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace SPA_JWT_Sample.Services.Interfaces
+namespace SPA_JWT_Sample.Services
 {
-    public class AADService
+    public class AzureExtraIdService : IAzureExtraIdService
     {
-        public AADService()
+
+        private readonly AzureExtraIdConfigModel _configModel;
+
+        public AzureExtraIdService(AzureExtraIdConfigModel configModel)
         {
-            
+            _configModel = configModel;
         }
-        public async Task<ClaimsPrincipal> ValidateAzureAdToken(string token)
+        public Task<ClaimsPrincipal> ValidateAzureAdToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -19,7 +24,7 @@ namespace SPA_JWT_Sample.Services.Interfaces
             {
                 // 單租用戶
                 ValidateIssuer = true,
-                ValidIssuer = "https://login.microsoftonline.com/5571c7d4-286b-47f6-9dd5-0aa688773c8e/v2.0", // 替換為您的 tenantId, 此為單一租用戶的時候的做法
+                ValidIssuer = $"https://login.microsoftonline.com/{_configModel.TenantId}/v2.0", // 替換為您的 tenantId, 此為單一租用戶的時候的做法
 
                 //多租用戶
                 //ValidateIssuer = true,
@@ -35,7 +40,7 @@ namespace SPA_JWT_Sample.Services.Interfaces
 
 
                 ValidateAudience = true,
-                ValidAudience = "fa65525a-fd35-496b-abef-a1bb7e8e8edf",  // 替換為您的 Azure AD 應用程式的 ClientId
+                ValidAudience = _configModel.ApplicationId,  // 替換為您的 Azure AD 應用程式的 ClientId
 
                 ValidateIssuerSigningKey = true,
                 ValidateLifetime = true,
@@ -55,12 +60,12 @@ namespace SPA_JWT_Sample.Services.Interfaces
             try
             {
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
-                return principal; // 返回已驗證的 ClaimsPrincipal
+                return Task.FromResult(principal); // 返回已驗證的 ClaimsPrincipal
             }
             catch (SecurityTokenException ex)
             {
                 Console.WriteLine($"Token validation failed: {ex.Message}");
-                return null;
+                return Task.FromResult<ClaimsPrincipal>(null);
             }
         }
     }

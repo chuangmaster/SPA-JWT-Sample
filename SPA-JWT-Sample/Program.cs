@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using SPA_JWT_Sample.Models;
+using SPA_JWT_Sample.Services;
 using System.Text;
 
 namespace SPA_JWT_Sample
@@ -11,6 +15,19 @@ namespace SPA_JWT_Sample
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddSingleton<SPA_JWT_Sample.Services.Interfaces.IAuthorizationService, AuthorizationService>();
+            builder.Services.AddSingleton<SPA_JWT_Sample.Services.Interfaces.IAzureExtraIdService, AzureExtraIdService>();
+            builder.Services.AddSingleton<AzureExtraIdConfigModel>(new AzureExtraIdConfigModel
+            {
+                ApplicationId = builder.Configuration["AzureAd:ApplicationId"] ?? "ApplicationId",
+                TenantId = builder.Configuration["AzureAd:TenantId"] ?? "TenantId"
+            });
+            builder.Services.AddSingleton<AuthorizationConfigModel>(new AuthorizationConfigModel
+            {
+                Issuer = builder.Configuration["JWT:Issuer"] ?? "Issuer",
+                Secret = builder.Configuration["JWT:Secret"] ?? "Secret",
+                Audience = builder.Configuration["JWT:Audience"] ?? "Audience"
+            });
 
             // Add CORS service
             builder.Services.AddCors(options =>

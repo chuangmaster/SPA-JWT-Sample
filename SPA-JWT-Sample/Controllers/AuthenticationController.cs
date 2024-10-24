@@ -109,6 +109,7 @@ namespace SPA_JWT_Sample.Controllers
             var tokenHelper = new JwtSecurityTokenHandler();
             return tokenHelper.WriteToken(token);
         }
+
     }
 
 
