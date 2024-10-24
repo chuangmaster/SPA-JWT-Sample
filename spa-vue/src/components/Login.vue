@@ -1,28 +1,6 @@
 <template>
     <div class="login" v-if="!isLogin">
         <h2>Login</h2>
-        <div id="login-form">
-            <form @submit.prevent="login">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" v-model="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" v-model="password" required>
-                </div>
-                <div class="form-group">
-                    <label for="platform">Platform</label>
-                    <select class="form-select" name="platform" v-model="platform">
-                        <option selected value="A">Platform A</option>
-                        <option value="B">Platform B</option>
-                    </select>
-                </div>
-                <button type="submit">Login</button>
-
-
-            </form>
-        </div>
         <button type="button" v-on:click="azLogin">Login With AZ</button>
         <button type="button" v-on:click="azLogout">Logout AZ</button>
 
@@ -67,44 +45,40 @@ export default {
         await this.msalInstance.initialize();
     },
     methods: {
-        login() {
-            const formData = new FormData();
-            formData.append('username', this.username);
-            formData.append('password', this.password);
-            formData.append('platform', this.platform);
-
-            axios.post('https://localhost:7173/login', formData, { withCredentials: true })
-                .then(response => {
-                    if (response.status === 200) {
-                        this.isLogin = true;
-                        localStorage.setItem('isLogin', 'true'); // Save login status to localStorage
-
-                    }
-                }).catch(error => {
-                    console.log(error);
-                });
-        },
-        logout() {
-            //delete localStorage item isLogin
-            this.isLogin = false;
-            localStorage.removeItem('isLogin');
-        },
         azLogin() {
-            const loginRequest = {
-                scopes: ["User.ReadWrite"],
-            };
-            this.msalInstance.loginPopup(loginRequest)
-                .then(response => {
-                    console.log(response);
-                    this.accountId = response.account.accountIdentifier;
-                    window.location.href = '/welcome';
-                })
-                .catch(error => {
-                    console.log(error);
-                });
+            this.msalInstance.handleRedirectPromise().then(this.handleResponse);
+
+        },
+        handleResponse(response) {
+            if (response !== null) {
+                this.accountId = response.account.homeAccountId;
+                // Display signed-in user content, call API, etc.
+            } else {
+                // In case multiple accounts exist, you can select
+                const currentAccounts = this.msalInstance.getAllAccounts();
+
+                if (currentAccounts.length === 0) {
+                    alert("No accounts detected. Enter your credentials.");
+                    // no accounts signed-in, attempt to sign a user in
+                    this.msalInstance.loginRedirect(loginRequest);
+                } else if (currentAccounts.length > 1) {
+                    alert("Multiple accounts detected. Please select your account.");
+                    // Add choose account code here
+                } else if (currentAccounts.length === 1) {
+                    alert("One account detected. Continuing with the account: " + currentAccounts[0].username);
+                    this.accountId = currentAccounts[0].homeAccountId;
+                }
+            }
         },
         azLogout() {
-            this.msalInstance.logout();
+
+
+            // you can select which account application should sign out
+            const logoutRequest = {
+                account: this.msalInstance.getAccountByHomeId(this.accountId),
+            };
+
+            this.msalInstance.logoutRedirect(logoutRequest);
         }
     }
 };
