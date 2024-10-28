@@ -1,54 +1,103 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import Login from './components/Login.vue';
-
-</script>
-
 <template>
-  <!--<header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-    <div class="wrapper">-->
-      <!--<HelloWorld msg="You did it!" />-->
-
-    <!--</div>
-  </header>-->
-
-  <main>
-      <nav>
-          <RouterLink to="/">Go to Home</RouterLink> |
-          <RouterLink to="/welcome">Go to Welcome</RouterLink> |
-          <RouterLink to="/login">Go to Login</RouterLink>
-      </nav>
-      <router-view/>
-  </main>
-
+  <div>
+    <button @click="login" v-if="!isLogin">Login with Azure AD</button>
+    <button @click="showToken" v-if="isLogin">Show Token</button>
+    <button @click="logout" v-if="isLogin">Logout</button>
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
+<script>
+import { PublicClientApplication, InteractionRequiredAuthError } from "@azure/msal-browser";
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+// Azure AD 和 MSAL 配置
+const msalConfig = {
+  auth: {
+    clientId: "fa65525a-fd35-496b-abef-a1bb7e8e8edf",
+    authority: "https://login.microsoftonline.com/5571c7d4-286b-47f6-9dd5-0aa688773c8e",
+    redirectUri: "http://localhost:8080",
+  },
+};
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
+const loginRequest = {
+  scopes: ["User.Read"],
+};
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+// 創建 MSAL 實例
+const msalInstance = new PublicClientApplication(msalConfig);
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
+export default {
+  data() {
+    return {
+      isLogin: false,
+      accessToken: "", // 儲存獲取的 access token
+    };
+  },
+  async mounted() {
+    // 初始化並等待 MSAL 實例完成初始化
+    await msalInstance.initialize();
+    console.log("Initializing handleRedirectPromise...");
+
+    // 處理重定向並獲取 token
+    this.handleRedirect();
+  },
+  methods: {
+    // 登入方法
+    login() {
+      msalInstance.loginRedirect(loginRequest).catch((error) => {
+        console.error("Login error:", error);
+      });
+    },
+
+    // 處理重定向並取得 token
+    async handleRedirect() {
+      try {
+        const response = await msalInstance.handleRedirectPromise();
+        if (response) {
+          console.log("Login successful:", response);
+          this.accessToken = response.accessToken; // 獲取 access token
+          this.isLogin = true;
+          console.log("Access Token:", this.accessToken);
+          alert(`Access Token: ${this.accessToken}`);
+        } else {
+          console.log("No response received from redirect.");
+        }
+      } catch (error) {
+        console.error("Error handling redirect:", error);
+      }
+    },
+
+    // 獲取 token 方法，用於其他 API 請求
+    async acquireToken() {
+      try {
+        const account = msalInstance.getActiveAccount();
+        if (!account) throw new Error("No active account!");
+
+        const response = await msalInstance.acquireTokenSilent({
+          ...loginRequest,
+          account,
+        });
+        this.accessToken = response.accessToken;
+        console.log("Acquired Token:", this.accessToken);
+      } catch (error) {
+        if (error instanceof InteractionRequiredAuthError) {
+          msalInstance.acquireTokenRedirect(loginRequest);
+        } else {
+          console.error("Token acquisition error:", error);
+        }
+      }
+    },
+
+    // 顯示 token
+    showToken() {
+      alert(this.accessToken ? `Access Token: ${this.accessToken}` : "No token found.");
+    },
+
+    // 登出並清除狀態
+    logout() {
+      msalInstance.logoutRedirect();
+      this.isLogin = false;
+      this.accessToken = "";
+    },
+  },
+};
+</script>
