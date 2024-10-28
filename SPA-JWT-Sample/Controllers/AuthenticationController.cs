@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using SPA_JWT_Sample.Models.Authentication;
+using SPA_JWT_Sample.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -10,9 +14,13 @@ namespace SPA_JWT_Sample.Controllers
     public class AuthenticationController : ControllerBase
     {
         private IConfiguration Configuration;
-        public AuthenticationController(IConfiguration configuration)
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IAzureExtraIdService _azureExtraIdService;
+        public AuthenticationController(IConfiguration configuration, IAuthorizationService authenticationService, IAzureExtraIdService azureExtraIdService)
         {
             Configuration = configuration;
+            _authorizationService = authenticationService;
+            _azureExtraIdService = azureExtraIdService;
         }
 
         /// <summary>
@@ -20,30 +28,19 @@ namespace SPA_JWT_Sample.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("login")]
-        public IActionResult Login(LoginModel loginModel)
+        public IActionResult Login(FormLoginModel loginModel)
         {
-            if (loginModel.Username == "admin" && loginModel.Password == "password")
+
+            if (loginModel.Username == "normalUser" && loginModel.Password == "password")
             {
-                var token = GenerateJwtToken(Configuration, true, loginModel.Platform);
+                var jwt = _authorizationService.GenerateJwtToken();
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = true, // 在開發環境中可以設置為 false，生產環境中應設置為 true 
                     SameSite = SameSiteMode.None, // 確保跨站點 cookie 可以被發送
                 };
-                Response.Cookies.Append("access_token", token, cookieOptions);
-                return Ok("Login success");
-            }
-            else if (loginModel.Username == "normalUser" && loginModel.Password == "password")
-            {
-                var token = GenerateJwtToken(Configuration, false, loginModel.Platform);
-                var cookieOptions = new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true, // 在開發環境中可以設置為 false，生產環境中應設置為 true 
-                    SameSite = SameSiteMode.None, // 確保跨站點 cookie 可以被發送
-                };
-                Response.Cookies.Append("access_token", token, cookieOptions);
+                Response.Cookies.Append("access_token", jwt, cookieOptions);
                 return Ok("Login success");
             }
             else
@@ -57,16 +54,19 @@ namespace SPA_JWT_Sample.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("token")]
-        public IActionResult Token([FromBody] LoginModel loginModel)
+        public IActionResult Token([FromBody] FormLoginModel loginModel)
         {
             if (loginModel.Username == "admin" && loginModel.Password == "password")
             {
-                var token = GenerateJwtToken(Configuration, true, loginModel.Platform);
-                return Ok(new { Token = token });
-            }
-            else if (loginModel.Username == "normalUser" && loginModel.Password == "password")
-            {
-                var token = GenerateJwtToken(Configuration, false, loginModel.Platform);
+                var token = _authorizationService.GenerateJwtToken();
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true, // 在開發環境中可以設置為 false，生產環境中應設置為 true 
+                    SameSite = SameSiteMode.None, // 確保跨站點 cookie 可以被發送
+                };
+                Response.Cookies.Append("access_token", token, cookieOptions);
+
                 return Ok(new { Token = token });
             }
             else
@@ -74,50 +74,5 @@ namespace SPA_JWT_Sample.Controllers
                 return Unauthorized();
             }
         }
-        private string GenerateJwtToken(IConfiguration config, bool isAdmin, string platform)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Secret"] ?? "default secret"));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var claims = new List<Claim>()
-            {
-                 //new Claim(ClaimTypes.Role, isAdmin? "admin": "normalUser") // 添加角色 Claim
-                //new Claim("roles", JsonSerializer.Serialize(new
-                //{
-                //    A = isAdmin ? "admin" : "normalUser",
-                //    B = "User"
-                //}))
-            };
-            if (!string.IsNullOrEmpty(platform) && platform == "A")
-            {
-                claims.Add(new Claim(JwtRegisteredClaimNames.Aud, "A"));
-                claims.Add(new Claim(ClaimTypes.Role, isAdmin ? "admin" : "normalUser"));
-            }
-            if (!string.IsNullOrEmpty(platform) && platform == "B")
-            {
-                claims.Add(new Claim(JwtRegisteredClaimNames.Aud, "B"));
-                claims.Add(new Claim(ClaimTypes.Role, "User"));
-
-            }
-
-            var token = new JwtSecurityToken(
-                issuer: config["JWT:Issuer"],
-                //audience: config["JWT:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
-                signingCredentials: credentials
-            );
-            var tokenHelper = new JwtSecurityTokenHandler();
-            return tokenHelper.WriteToken(token);
-        }
-
-    }
-
-
-    public class LoginModel
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-
-        public string Platform { get; set; } = string.Empty;
     }
 }

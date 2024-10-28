@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using SPA_JWT_Sample.Models;
+using SPA_JWT_Sample.Models.Services;
 using SPA_JWT_Sample.Services;
 using System.Text;
 

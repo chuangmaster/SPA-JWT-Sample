@@ -1,5 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using SPA_JWT_Sample.Models;
+using SPA_JWT_Sample.Models.Services;
 using SPA_JWT_Sample.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -47,6 +47,33 @@ namespace SPA_JWT_Sample.Services
             );
             var tokenHelper = new JwtSecurityTokenHandler();
             return tokenHelper.WriteToken(token);
+        }
+
+        public string GenerateJwtToken()
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authorizationConfigModel.Secret));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            bool isAdmin = true;
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Aud, "A"),
+                new Claim(ClaimTypes.Role, isAdmin ? "admin" : "normalUser")
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: _authorizationConfigModel.Issuer,
+                //audience: config["JWT:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(30),
+                signingCredentials: credentials
+            );
+            var tokenHelper = new JwtSecurityTokenHandler();
+            return tokenHelper.WriteToken(token);
+        }
+
+        public string GenerateRelyToken()
+        {
+            throw new NotImplementedException();
         }
     }
 }

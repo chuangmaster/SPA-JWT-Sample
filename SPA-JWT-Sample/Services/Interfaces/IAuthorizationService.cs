@@ -2,5 +2,9 @@
 {
     public interface IAuthorizationService
     {
+        string GenerateJwtToken();
+
+
+        string GenerateRelyToken();
     }
 }

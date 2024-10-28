@@ -1,4 +1,4 @@
-﻿namespace SPA_JWT_Sample.Models
+﻿namespace SPA_JWT_Sample.Models.Services
 {
     public class AzureExtraIdConfigModel
     {
@@ -7,7 +7,7 @@
         /// </summary>
         public required string ApplicationId { get; set; }
 
-     
+
         /// <summary>
         /// Azure AD 的 TenantId
         /// </summary>

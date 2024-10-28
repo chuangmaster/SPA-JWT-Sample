@@ -1,4 +1,4 @@
-﻿namespace SPA_JWT_Sample.Models
+﻿namespace SPA_JWT_Sample.Models.Services
 {
     public class AuthorizationConfigModel
     {
