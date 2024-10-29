@@ -5,6 +5,6 @@
         string GenerateJwtToken();
 
 
-        string GenerateRelyToken();
+        string GenerateRefreshToken();
     }
 }

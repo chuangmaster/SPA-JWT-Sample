@@ -1,5 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using SPA_JWT_Sample.Models.Services;
+using SPA_JWT_Sample.Models.Services.Request;
 using SPA_JWT_Sample.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -8,8 +8,8 @@ namespace SPA_JWT_Sample.Services
 {
     public class AuthorizationService : IAuthorizationService
     {
-        private readonly AuthorizationConfigModel _authorizationConfigModel;
-        public AuthorizationService(AuthorizationConfigModel authorizationConfigModel)
+        private readonly AuthorizationConfigDTO _authorizationConfigModel;
+        public AuthorizationService(AuthorizationConfigDTO authorizationConfigModel)
         {
             _authorizationConfigModel = authorizationConfigModel;
         }
@@ -71,7 +71,7 @@ namespace SPA_JWT_Sample.Services
             return tokenHelper.WriteToken(token);
         }
 
-        public string GenerateRelyToken()
+        public string GenerateRefreshToken()
         {
             throw new NotImplementedException();
         }

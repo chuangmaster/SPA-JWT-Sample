@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using SPA_JWT_Sample.Models.Authentication;
+using SPA_JWT_Sample.Models.Api.Requests;
+using SPA_JWT_Sample.Models.Api.Responses;
+using SPA_JWT_Sample.Services;
 using SPA_JWT_Sample.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -16,11 +18,19 @@ namespace SPA_JWT_Sample.Controllers
         private IConfiguration Configuration;
         private readonly IAuthorizationService _authorizationService;
         private readonly IAzureExtraIdService _azureExtraIdService;
-        public AuthenticationController(IConfiguration configuration, IAuthorizationService authenticationService, IAzureExtraIdService azureExtraIdService)
+        private readonly IUserService _userService;
+
+        public AuthenticationController(
+            IConfiguration configuration,
+            IAuthorizationService authenticationService,
+            IAzureExtraIdService azureExtraIdService,
+            IUserService userService)
         {
             Configuration = configuration;
             _authorizationService = authenticationService;
             _azureExtraIdService = azureExtraIdService;
+            _userService = userService;
+
         }
 
         /// <summary>
@@ -28,24 +38,39 @@ namespace SPA_JWT_Sample.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("login")]
-        public IActionResult Login(FormLoginModel loginModel)
+        public IActionResult Login(LoginRequest loginModel)
         {
-
-            if (loginModel.Username == "normalUser" && loginModel.Password == "password")
+            var response = new LoginResponse();
+            var validReuslt = _azureExtraIdService.ValidateAzureAdToken(loginModel.TokenId);
+            if (validReuslt != null)
             {
-                var jwt = _authorizationService.GenerateJwtToken();
-                var cookieOptions = new CookieOptions
+                var user = _userService.GetUserById("");
+                if (user != null)
                 {
-                    HttpOnly = true,
-                    Secure = true, // 在開發環境中可以設置為 false，生產環境中應設置為 true 
-                    SameSite = SameSiteMode.None, // 確保跨站點 cookie 可以被發送
-                };
-                Response.Cookies.Append("access_token", jwt, cookieOptions);
-                return Ok("Login success");
+                    var jwt = _authorizationService.GenerateJwtToken();
+                    var cookieOptions = new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true, // 在開發環境中可以設置為 false，生產環境中應設置為 true 
+                        SameSite = SameSiteMode.None, // 確保跨站點 cookie 可以被發送
+                    };
+                    Response.Cookies.Append("access_token", jwt, cookieOptions);
+                    var refreshToken = _authorizationService.GenerateRefreshToken();
+
+                    response.RefreshToken = refreshToken;
+                    response.ExpiresIn = 10800;
+                    return Ok(response);
+                }
+                else
+                {
+                    response.Message = "User not found";
+                    return BadRequest(response);
+                }
             }
             else
             {
-                return Unauthorized();
+                response.Message = "Invalid token";
+                return BadRequest(response);
             }
         }
 
@@ -54,7 +79,7 @@ namespace SPA_JWT_Sample.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("token")]
-        public IActionResult Token([FromBody] FormLoginModel loginModel)
+        public IActionResult Token([FromBody] FormLoginRequest loginModel)
         {
             if (loginModel.Username == "admin" && loginModel.Password == "password")
             {

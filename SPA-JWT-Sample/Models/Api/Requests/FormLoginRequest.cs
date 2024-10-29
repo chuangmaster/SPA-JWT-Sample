@@ -1,6 +1,6 @@
-﻿namespace SPA_JWT_Sample.Models.Authentication
+﻿namespace SPA_JWT_Sample.Models.Api.Requests
 {
-    public class FormLoginModel
+    public class FormLoginRequest
     {
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;

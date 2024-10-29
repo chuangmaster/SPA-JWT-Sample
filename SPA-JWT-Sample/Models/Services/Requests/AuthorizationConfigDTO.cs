@@ -1,6 +1,6 @@
-﻿namespace SPA_JWT_Sample.Models.Services
+﻿namespace SPA_JWT_Sample.Models.Services.Request
 {
-    public class AuthorizationConfigModel
+    public class AuthorizationConfigDTO
     {
         /// <summary>
         /// Secret

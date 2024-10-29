@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using SPA_JWT_Sample.Models.Services;
+using SPA_JWT_Sample.Models.Services.Request;
 using SPA_JWT_Sample.Services;
+using SPA_JWT_Sample.Services.Interfaces;
 using System.Text;
+using IAuthorizationService = SPA_JWT_Sample.Services.Interfaces.IAuthorizationService;
 
 namespace SPA_JWT_Sample
 {
@@ -15,19 +17,21 @@ namespace SPA_JWT_Sample
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddSingleton<SPA_JWT_Sample.Services.Interfaces.IAuthorizationService, AuthorizationService>();
-            builder.Services.AddSingleton<SPA_JWT_Sample.Services.Interfaces.IAzureExtraIdService, AzureExtraIdService>();
-            builder.Services.AddSingleton<AzureExtraIdConfigModel>(new AzureExtraIdConfigModel
+            builder.Services.AddSingleton<IAuthorizationService, AuthorizationService>();
+            builder.Services.AddSingleton<IAzureExtraIdService, AzureExtraIdService>();
+            builder.Services.AddSingleton<IUserService, UserService>();
+            builder.Services.AddSingleton<AzureExtraIdConfigDTO>(new AzureExtraIdConfigDTO
             {
                 ApplicationId = builder.Configuration["AzureAd:ApplicationId"] ?? "ApplicationId",
                 TenantId = builder.Configuration["AzureAd:TenantId"] ?? "TenantId"
             });
-            builder.Services.AddSingleton<AuthorizationConfigModel>(new AuthorizationConfigModel
+            builder.Services.AddSingleton<AuthorizationConfigDTO>(new AuthorizationConfigDTO
             {
                 Issuer = builder.Configuration["JWT:Issuer"] ?? "Issuer",
                 Secret = builder.Configuration["JWT:Secret"] ?? "Secret",
                 Audience = builder.Configuration["JWT:Audience"] ?? "Audience"
             });
+
 
             // Add CORS service
             builder.Services.AddCors(options =>

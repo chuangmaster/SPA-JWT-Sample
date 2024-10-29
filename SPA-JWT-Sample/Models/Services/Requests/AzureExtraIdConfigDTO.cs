@@ -1,6 +1,6 @@
-﻿namespace SPA_JWT_Sample.Models.Services
+﻿namespace SPA_JWT_Sample.Models.Services.Request
 {
-    public class AzureExtraIdConfigModel
+    public class AzureExtraIdConfigDTO
     {
         /// <summary>
         /// Azure AD 應用程式的 ClientId

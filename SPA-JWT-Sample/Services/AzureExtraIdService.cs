@@ -1,5 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using SPA_JWT_Sample.Models.Services;
+using SPA_JWT_Sample.Models.Services.Request;
 using SPA_JWT_Sample.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -9,9 +9,9 @@ namespace SPA_JWT_Sample.Services
     public class AzureExtraIdService : IAzureExtraIdService
     {
 
-        private readonly AzureExtraIdConfigModel _configModel;
+        private readonly AzureExtraIdConfigDTO _configModel;
 
-        public AzureExtraIdService(AzureExtraIdConfigModel configModel)
+        public AzureExtraIdService(AzureExtraIdConfigDTO configModel)
         {
             _configModel = configModel;
         }
@@ -60,6 +60,15 @@ namespace SPA_JWT_Sample.Services
             try
             {
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+                if (principal != null)
+                {
+                    Console.WriteLine("Token validation succeeded.");
+                }
+                else
+                {
+                    Console.WriteLine("Token validation failed.");
+                    throw new SecurityTokenException("oken validation failed");
+                }
                 return Task.FromResult(principal); // 返回已驗證的 ClaimsPrincipal
             }
             catch (SecurityTokenException ex)
