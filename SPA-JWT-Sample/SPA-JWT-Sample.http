@@ -1,6 +1,39 @@
 @SPA_JWT_Sample_HostAddress = http://localhost:5133
 
+# 登入後將回傳的 access_token 複製，貼到下方 @token 變數
+@token = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZW1vLXVzZXIiLCJqdGkiOiI3NGNjZjY2NC04MzkyLTQ1NzktODBkNi1jNjZmMjM4MDJjNWMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhZG1pbiIsImV4cCI6MTc3NTcyNTY1NiwiaXNzIjoieW91cl9pc3N1ZXJfaGVyZSIsImF1ZCI6InlvdXJfYXVkaWVuY2VfaGVyZSJ9.f0oA_DljcG8wk6-YfHuqesfk9MSbPaXnv1bAdmNjeiK7sQf7MmU2UsRy4_hG_L_1HgR-O9u3gBMghYh7o1BV8yW1ZbhoJMm3n7Oap-hSEMrUGzH0I8uIT5nQYsbtiMrKrWddn8_jbUZ6-dSoECOjr1J7vcRrdPu6-wj8vGET9OBJBzpkA4hjYKIaZpD3rjmlbptwJG0iiL0ZseunNEcOr1MojOjHaIgGtX3M4Z9KsFZ94DOS7NtUXw6QvVfYpG7vMNZ9gUev7UdLL3zZeJjuDb2pFJj7K1L7bdRvI4g-z6lU9P7lEIcb8NjM7TwJay7SYfy13mCwinHhwd5BGD2y8g
+
+### 1. 帳密登入（取得 JWT access_token）
+POST {{SPA_JWT_Sample_HostAddress}}/api/authentication/token
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "password"
+}
+
+### 2. 取得 RSA 公鑰（JWK 格式）
+# 任何外部服務可用此公鑰離線驗證 JWT 簽章
+GET {{SPA_JWT_Sample_HostAddress}}/api/authentication/public-key
+Accept: application/json
+
+### 3. 取得目前 JWT 的 Claims（確認 token 內容）
+GET {{SPA_JWT_Sample_HostAddress}}/api/sampleapi/me
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### 4. 取得受保護的訂單清單（需 admin 角色）
+GET {{SPA_JWT_Sample_HostAddress}}/api/sampleapi/orders
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### 5. 未帶 token 直接打受保護 API（預期 401 Unauthorized）
+GET {{SPA_JWT_Sample_HostAddress}}/api/sampleapi/orders
+Accept: application/json
+
+### 6. WeatherForecast（需 admin 角色）
 GET {{SPA_JWT_Sample_HostAddress}}/weatherforecast/
 Accept: application/json
+Authorization: Bearer {{token}}
 
 ###
